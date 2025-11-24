@@ -3,4 +3,4 @@ coverage
 dist
 .DS_Store
 *.log
-packages/json-toon-parser/dist
+packages/toon-parser/dist

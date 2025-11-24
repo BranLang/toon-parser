@@ -1,4 +1,4 @@
-# json-toon-parser
+# toon-parser
 
 Safe JSON ⇆ TOON encoder/decoder with strict validation and prototype-pollution guards.
 

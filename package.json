@@ -10,7 +10,7 @@
   "scripts": {
     "build": "npm run build -w toon-parser",
     "test": "vitest --run",
-    "lint": "tsc -b packages/json-toon-parser",
+    "lint": "tsc -b packages/toon-parser",
     "example": "npm run build && npm run start -w json-toon-example"
   },
   "devDependencies": {

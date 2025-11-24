@@ -1,4 +1,4 @@
-# json-toon-parser
+# toon-parser
 
 Safe JSON ⇆ TOON encoder/decoder with strict validation and prototype-pollution guards.
 
@@ -146,4 +146,4 @@ try {
 
 ## Project status
 
-This library targets TOON spec v2.1 core behaviors commonly needed for JSON round-trips. It prioritizes correctness and safety over permissiveness; loosen validation via `strict: false` only when you fully trust the input source.***
+This library targets TOON spec v2.1 core behaviors commonly needed for JSON round-trips. It prioritizes correctness and safety over permissiveness; loosen validation via `strict: false` only when you fully trust the input source.

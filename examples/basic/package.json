@@ -7,6 +7,6 @@
     "start": "node index.mjs"
   },
   "dependencies": {
-    "toon-parser": "file:../../packages/json-toon-parser"
+    "toon-parser": "file:../../packages/toon-parser"
   }
 }
