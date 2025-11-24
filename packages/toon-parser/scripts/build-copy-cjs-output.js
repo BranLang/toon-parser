@@ -1,5 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const distCjsDir = path.join(__dirname, '..', 'dist', 'cjs');
 const distDir = path.join(__dirname, '..', 'dist');
@@ -9,8 +13,7 @@ if (!fs.existsSync(distCjsDir)) {
   process.exit(1);
 }
 
-const entries = fs.readdirSync(distCjsDir);
-for (const file of entries) {
+for (const file of fs.readdirSync(distCjsDir)) {
   const src = path.join(distCjsDir, file);
   let destName = file;
 
@@ -27,7 +30,7 @@ for (const file of entries) {
 try {
   fs.rmSync(distCjsDir, { recursive: true, force: true });
 } catch (e) {
-  // ignore
+  // ignore cleanup errors
 }
 
 console.log('CJS build copied to dist: OK');
