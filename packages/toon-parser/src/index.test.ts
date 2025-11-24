@@ -48,6 +48,10 @@ describe('json-toon parser', () => {
     expect(() => toonToJson('value: 007')).toThrow(/leading zeros/);
   });
 
+  it('treats a numeric-like but non-numeric token as a quoted string (e.g., "00;")', () => {
+    expect(toonToJson('value: "00;"')).toEqual({ value: '00;' });
+  });
+
   it('round-trips nested array items that contain objects', () => {
     const payload = [
       [
