@@ -5,7 +5,7 @@ Safe JSON ⇆ TOON encoder/decoder with strict validation and prototype-pollutio
 ## Install
 
 ```bash
-npm install json-toon-parser
+npm install toon-parser
 ```
 
 ## Why this library?
@@ -17,7 +17,7 @@ npm install json-toon-parser
 ## Quick start
 
 ```ts
-import { jsonToToon, toonToJson } from 'json-toon-parser';
+import { jsonToToon, toonToJson } from 'toon-parser';
 
 const data = {
   context: { task: 'hike planning', year: 2025 },
