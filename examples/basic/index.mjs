@@ -1,4 +1,4 @@
-import { jsonToToon, toonToJson } from 'json-toon-parser';
+import { jsonToToon, toonToJson } from 'toon-parser';
 
 const data = {
   project: { name: 'Field Report', version: '0.1.0' },

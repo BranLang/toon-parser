@@ -1,6 +1,6 @@
 {
   "name": "json-toon-parser-monorepo",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -8,7 +8,7 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "npm run build -w json-toon-parser",
+    "build": "npm run build -w toon-parser",
     "test": "vitest --run",
     "lint": "tsc -b packages/json-toon-parser",
     "example": "npm run build && npm run start -w json-toon-example"

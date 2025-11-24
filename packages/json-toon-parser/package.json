@@ -1,6 +1,6 @@
 {
-  "name": "json-toon-parser",
-  "version": "0.1.0",
+  "name": "toon-parser",
+  "version": "1.0.1",
   "description": "Safe JSON <-> TOON encoder/decoder with strict validation.",
   "type": "module",
   "main": "dist/index.js",
