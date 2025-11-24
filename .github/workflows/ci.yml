@@ -44,7 +44,9 @@ jobs:
 
       - name: NPM pack verification
         run: |
+          rm -f tmp-pack/*.tgz
           mkdir -p tmp-pack
           cd packages/toon-parser
-          npm pack --pack-destination ../../tmp-pack
-          tar -tf ../../tmp-pack/*.tgz | grep -E "dist/index.cjs|dist/index.js|dist/index.d.ts" || { echo "Packed artifact missing required dist files"; exit 1; }
+          PACK_FILE=$(npm pack --pack-destination ../../tmp-pack | tail -n 1)
+          PACK_PATH="../../tmp-pack/${PACK_FILE##*/}"
+          tar -tf "$PACK_PATH" | grep -E "dist/index.cjs|dist/index.js|dist/index.d.ts" || { echo "Packed artifact missing required dist files"; exit 1; }
