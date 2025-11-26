@@ -8,6 +8,8 @@ Safe JSON ⇆ TOON encoder/decoder with strict validation and prototype-pollutio
 npm install toon-parser
 ```
 
+Note: this package supports both ESM and CommonJS consumers (CJS builds are available as `dist/index.cjs`). The package requires Node >= 18 per `engines` in `package.json`.
+
 ## Why this library?
 
 - Implements the TOON v2.1 spec features most useful for JSON round-trips: tabular arrays, inline primitive arrays, nested objects/arrays, deterministic quoting.

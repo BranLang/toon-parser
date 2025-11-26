@@ -1,12 +1,20 @@
 # toon-parser
 
-Safe JSON ⇆ TOON encoder/decoder with strict validation and prototype-pollution guards.
+Safe JSON <-> TOON encoder/decoder with strict validation and prototype-pollution guards.
 
 ## Install
 
 ```bash
 npm install toon-parser
 ```
+
+Works in both ESM and CommonJS projects (CJS bundle at `dist/index.cjs`) and requires Node 18+.
+
+## New in 1.1.0
+
+- Ships a first-class CommonJS build alongside the ESM entry point (`require('toon-parser')` now works without extra tooling).
+- Arrays with empty objects round-trip correctly; dash-only list items decode to `{}` instead of throwing.
+- Numbers with leading zeros must be quoted, preventing ambiguous parses like `007`.
 
 ## Why this library?
 
@@ -34,6 +42,15 @@ console.log(toon);
 
 const roundTrip = toonToJson(toon);
 console.log(roundTrip); // back to the original JSON object
+```
+
+CommonJS usage:
+
+```js
+const { jsonToToon, toonToJson } = require('toon-parser');
+
+const toon = jsonToToon({ ok: true });
+console.log(toon);
 ```
 
 ## API
@@ -85,6 +102,20 @@ rows[2]{a,b}:
 ```
 
 Non-uniform arrays fall back to list form with `-` entries.
+
+### Round-trip arrays that include empty objects
+
+```ts
+const toon = jsonToToon({ items: [{}, { id: 1 }] });
+/*
+items[2]:
+  -
+  -
+    id: 1
+*/
+const decoded = toonToJson(toon);
+// { items: [{}, { id: 1 }] }
+```
 
 ### Handling unsafe keys
 
@@ -141,6 +172,7 @@ try {
 
 - **Tabular detection** follows the spec: all elements must be objects, share identical keys, and contain only primitives.
 - **String quoting** follows deterministic rules (quote numeric-looking strings, leading/trailing space, colon, delimiter, backslash, brackets, control chars, or leading hyphen).
+- **Leading zeros rejected**: unquoted integers like `007` throw to avoid octal-like ambiguity.
 - **Finite numbers only**: `NaN`, `Infinity`, and `-Infinity` are rejected.
 - **No implicit path expansion**: dotted keys stay literal (e.g., `a.b` remains a single key).
 

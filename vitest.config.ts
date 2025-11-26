@@ -6,7 +6,11 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       reporter: ['text', 'lcov'],
-      enabled: true
+      enabled: true,
+      statements: 80,
+      branches: 70,
+      functions: 90,
+      lines: 80
     }
   }
 });

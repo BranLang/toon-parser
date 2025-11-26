@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`snapshot tests for JSON -> TOON > nested snapshot 1`] = `
+"project:
+  name: Test
+  version: "0.1"
+items[2]:
+  -
+    id: 1
+  -"
+`;
+
+exports[`snapshot tests for JSON -> TOON > tabular snapshot 1`] = `
+"readings[2]{id,a}:
+  1,x
+  2,y
+list[3]: 1,2,3"
+`;

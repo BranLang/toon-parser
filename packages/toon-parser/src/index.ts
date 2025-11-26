@@ -67,6 +67,7 @@ type Container =
       type: 'placeholder';
       indent: number;
       filled: boolean;
+      current?: { value: Record<string, unknown>; indent: number };
       assign: (value: unknown) => void;
     };
 
@@ -260,14 +261,14 @@ export function toonToJson(text: string, options: ToonToJsonOptions = {}): unkno
       }
     } else if (container.type === 'list') {
       if (strict && container.expectedLength !== null && container.value.length !== container.expectedLength) {
-        throw new ToonError(
-          `List length mismatch: expected ${container.expectedLength}, got ${container.value.length}.`,
-          lineNo
-        );
+          throw new ToonError(`List length mismatch: expected ${container.expectedLength}, got ${container.value.length}.`, lineNo);
       }
     } else if (container.type === 'placeholder') {
-      if (strict && !container.filled) {
-        throw new ToonError('List item is empty where a value was expected.', lineNo);
+      // If a placeholder was not filled, treat it as an empty object value.
+      // This matches how `jsonToToon` emits empty objects as a `-` list item with no body.
+      if (!container.filled) {
+        container.assign(createSafeObject());
+        container.filled = true;
       }
     }
   };
@@ -521,6 +522,29 @@ export function toonToJson(text: string, options: ToonToJsonOptions = {}): unkno
 
     const keyToken = line.slice(0, colonIndex).trim();
     const valueToken = line.slice(colonIndex + 1).trim();
+    // If we're in a placeholder parent (a `-` with no inline content), and the body
+    // line contains a key:value, we should attach to the current object context.
+    // If this is the first body line, create and track the object on placeholder.current.
+    // Subsequent body lines will reuse the same object.
+    if (parent && parent.type === 'placeholder') {
+      // Don't automatically create an object for array headers (e.g., `[2]{...}:`)
+      // — handle those via the normal `processKeyValueLine` flow so headers attach
+      // to the placeholder correctly as arrays/tabular types.
+      if (!keyToken.startsWith('[')) {
+        // Reuse existing current object or create new one on first body line
+        if (!parent.current) {
+          const obj = createSafeObject();
+          // Call assign BEFORE setting current, so the skip logic can distinguish
+          // first assignment from finalizeContainer's empty object push
+          parent.assign(obj);
+          parent.current = { value: obj, indent: indentLevel + 1 };
+          parent.filled = true;
+        }
+        const objContext: Container = { type: 'object', value: parent.current.value, indent: indentLevel + 1 };
+        processKeyValueLine(indentLevel + 1, keyToken, valueToken, lineNo, objContext);
+        return;
+      }
+    }
     processKeyValueLine(indentLevel, keyToken, valueToken, lineNo, parent);
   });
 
@@ -586,11 +610,19 @@ function parseListItem(
   }
   const content = trimmed.slice(1).trim();
   if (content === '') {
-    const placeholder: Container = {
+    const placeholder: Container & { type: 'placeholder' } = {
       type: 'placeholder',
       indent: indentLevel + 1,
       filled: false,
-      assign: value => {
+      current: undefined,
+      assign: function(value: unknown) {
+        // Push value to list; the current field tracks multi-line object context
+        // Skip only if: current already exists (meaning we've already assigned) AND
+        // the value being assigned is an empty object (from finalizeContainer).
+        if (this.current && typeof value === 'object' && value !== null && !Array.isArray(value) && Object.keys(value).length === 0) {
+          // Empty object from finalizeContainer; skip pushing again
+          return;
+        }
         list.value.push(value);
       }
     };
@@ -759,10 +791,15 @@ function parsePrimitiveToken(token: string, delimiter: Delimiter, lineNo: number
   if (trimmed === 'true') return true;
   if (trimmed === 'false') return false;
   if (trimmed === 'null') return null;
-  if (/^-?0\d+/.test(trimmed)) {
+  // If token is a plain integer with leading zeros (e.g., 007) this is disallowed
+  // and should be quoted - reject early.
+  if (/^-?\d+$/.test(trimmed) && /^-?0\d+$/.test(trimmed)) {
     throw new ToonError('Numbers with leading zeros must be quoted.', lineNo);
   }
   if (NUMERIC_RE.test(trimmed)) {
+    if (/^-?0\d+/.test(trimmed)) {
+      throw new ToonError('Numbers with leading zeros must be quoted.', lineNo);
+    }
     const num = Number(trimmed);
     if (!Number.isFinite(num)) {
       throw new ToonError('Invalid numeric value.', lineNo);
