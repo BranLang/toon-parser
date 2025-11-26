@@ -1,6 +1,7 @@
 {
   "name": "json-toon-parser-monorepo",
-  "version": "1.1.0",
+  "version": "1.1.1",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -9,6 +10,9 @@
   ],
   "engines": {
     "node": ">=18"
+  },
+  "overrides": {
+    "esbuild": "^0.25.0"
   },
   "repository": {
     "type": "git",
@@ -25,9 +29,9 @@
     "example": "npm run build && npm run start -w json-toon-example"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^1.6.0",
+    "@vitest/coverage-v8": "^2.1.8",
     "@types/node": "^24.10.1",
     "typescript": "^5.6.3",
-    "vitest": "^1.6.0"
+    "vitest": "^2.1.8"
   }
 }
