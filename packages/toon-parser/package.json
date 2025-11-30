@@ -1,6 +1,6 @@
 {
   "name": "toon-parser",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Safe JSON <-> TOON encoder/decoder with strict validation.",
   "type": "module",
   "main": "dist/index.cjs",
@@ -46,8 +46,8 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "rimraf": "^6.0.0",
-    "fast-check": "^4.3.0"
+    "fast-check": "^4.3.0",
+    "rimraf": "^6.0.0"
   },
   "engines": {
     "node": ">=18"
