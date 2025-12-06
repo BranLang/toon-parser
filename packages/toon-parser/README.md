@@ -65,12 +65,11 @@ const toon = xmlToToon('<user id="1">Alice</user>');
 //   "@_id": 1
 ```
 
-```
-67: 
-68: > [!WARNING]
-69: > **Security Note:** While `fast-xml-parser` v5 is generally secure by default, overriding `xmlOptions` can alter security properties (e.g., enabling entity expansion). Only enable such features if you trust the source XML.
-70: 
-71: Options:
+
+> [!WARNING]
+> **Security Note:** While `fast-xml-parser` v5 is generally secure by default, overriding `xmlOptions` can alter security properties (e.g., enabling entity expansion). Only enable such features if you trust the source XML.
+
+Options:
 - `indent` (number, default `2`): spaces per indentation level.
 - `delimiter` (`,` | `|` | `\t`, default `,`): delimiter for inline arrays and tabular rows.
 - `sortKeys` (boolean, default `false`): sort object keys alphabetically instead of preserving encounter order.
