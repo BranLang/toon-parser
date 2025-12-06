@@ -1,4 +1,6 @@
 export type JsonPrimitive = string | number | boolean | null;
+export * from './xml.js';
+
 
 export interface SecurityOptions {
   /**
@@ -132,6 +134,12 @@ export function jsonToToon(value: unknown, options: JsonToToonOptions = {}): str
       return;
     }
 
+    if (input instanceof Date) {
+      const line = primitiveLine(key, input.toISOString(), indentUnit.repeat(depth), activeDelimiter, limits);
+      lines.push(line);
+      return;
+    }
+
     throw new ToonError(`Unsupported value type: ${typeof input}`);
   };
 
@@ -230,6 +238,9 @@ export function jsonToToon(value: unknown, options: JsonToToonOptions = {}): str
         for (const [childKey, childValue] of objEntries) {
           encodeValue(childValue, itemIndent + 1, childKey, activeDelimiter);
         }
+      } else if (item instanceof Date) {
+        lines.push(`${itemPrefix}- ${encodePrimitive(item.toISOString(), activeDelimiter, activeDelimiter)}`);
+        bumpNodes(state, limits, 1);
       } else {
         throw new ToonError(`Unsupported array item type: ${typeof item}`);
       }
@@ -338,7 +349,7 @@ export function toonToJson(text: string, options: ToonToJsonOptions = {}): unkno
     if (fieldsRaw === undefined) {
       return { length, delimiter };
     }
-    const fields = splitDelimited(fieldsRaw, delimiter, lineNo).map(f => decodeKey(f, delimiter, lineNo));
+    const fields = splitDelimited(fieldsRaw, delimiter, lineNo).map(f => decodeKey(f, lineNo));
     if (fields.length === 0 && strict) {
       throw new ToonError('Tabular arrays require at least one field.', lineNo);
     }
@@ -353,7 +364,7 @@ export function toonToJson(text: string, options: ToonToJsonOptions = {}): unkno
     parent: Container | undefined
   ): void => {
     const { rawKey, header } = splitKeyHeader(keyToken);
-    const key = rawKey === '' ? null : decodeKey(rawKey, delimiterFallback, lineNo);
+    const key = rawKey === '' ? null : decodeKey(rawKey, lineNo);
     if (key !== null) {
       validateKeySafety(key, limits, lineNo);
     }
@@ -541,7 +552,7 @@ export function toonToJson(text: string, options: ToonToJsonOptions = {}): unkno
           parent.filled = true;
         }
         const objContext: Container = { type: 'object', value: parent.current.value, indent: indentLevel + 1 };
-        processKeyValueLine(indentLevel + 1, keyToken, valueToken, lineNo, objContext);
+        processKeyValueLine(indentLevel, keyToken, valueToken, lineNo, objContext);
         return;
       }
     }
@@ -735,7 +746,7 @@ function parseArrayHeaderFromList(token: string, lineNo: number): { length: numb
   const length = parseInt(match[1]!, 10);
   const delimiter = (match[2] as Delimiter | undefined) ?? DEFAULT_DELIMITER;
   const fieldsRaw = match[4];
-  const fields = fieldsRaw ? splitDelimited(fieldsRaw, delimiter, lineNo).map(f => decodeKey(f, delimiter, lineNo)) : undefined;
+  const fields = fieldsRaw ? splitDelimited(fieldsRaw, delimiter, lineNo).map(f => decodeKey(f, lineNo)) : undefined;
   return { length, delimiter, fields };
 }
 
@@ -952,7 +963,7 @@ function encodeKey(key: string, activeDelimiter: Delimiter): string {
   return `"${escapeString(key)}"`;
 }
 
-function decodeKey(token: string, delimiter: Delimiter, lineNo: number): string {
+function decodeKey(token: string, lineNo: number): string {
   const trimmed = token.trim();
   if (trimmed.startsWith('"')) {
     return decodeQuotedString(trimmed, lineNo);
@@ -960,9 +971,7 @@ function decodeKey(token: string, delimiter: Delimiter, lineNo: number): string 
   if (!SAFE_KEY_RE.test(trimmed)) {
     throw new ToonError('Invalid key token.', lineNo);
   }
-  if (trimmed.includes(delimiter)) {
-    throw new ToonError('Key contains active delimiter and must be quoted.', lineNo);
-  }
+  // trimmed.includes(delimiter) check is redundant because SAFE_KEY_RE excludes delimiters
   return trimmed;
 }
 

@@ -23,7 +23,16 @@ for (const file of fs.readdirSync(distCjsDir)) {
   }
 
   const dest = path.join(distDir, destName);
-  fs.copyFileSync(src, dest);
+  
+  if (file.endsWith('.js')) {
+    let content = fs.readFileSync(src, 'utf8');
+    // Rewrite relative requires from .js to .cjs
+    // Matches require("./foo.js") or require('../foo.js')
+    content = content.replace(/(require\(["']\..+?)\.js(["']\))/g, '$1.cjs$2');
+    fs.writeFileSync(dest, content);
+  } else {
+    fs.copyFileSync(src, dest);
+  }
 }
 
 // Optionally cleanup the cjs intermediate directory

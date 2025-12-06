@@ -1,6 +1,10 @@
 # toon-parser
 
-Safe JSON <-> TOON encoder/decoder with strict validation and prototype-pollution guards.
+[![CI](https://github.com/BranLang/toon-parser/actions/workflows/ci.yml/badge.svg)](https://github.com/BranLang/toon-parser/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/toon-parser.svg)](https://www.npmjs.com/package/toon-parser)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Safe JSON ⇆ TOON encoder/decoder with strict validation and prototype-pollution guards.
 
 ## Install
 
@@ -8,13 +12,11 @@ Safe JSON <-> TOON encoder/decoder with strict validation and prototype-pollutio
 npm install toon-parser
 ```
 
-Works in both ESM and CommonJS projects (CJS bundle at `dist/index.cjs`) and requires Node 18+.
+Note: this package supports both ESM and CommonJS consumers (CJS builds are available as `dist/index.cjs`). The package requires Node >= 18 per `engines` in `package.json`.
 
-## New in 1.1.0
-
-- Ships a first-class CommonJS build alongside the ESM entry point (`require('toon-parser')` now works without extra tooling).
-- Arrays with empty objects round-trip correctly; dash-only list items decode to `{}` instead of throwing.
-- Numbers with leading zeros must be quoted, preventing ambiguous parses like `007`.
+## New in 2.0.0
+- **XML Support**: Convert XML strings directly to TOON with `xmlToToon`.
+- **Date Support**: Automatically converts `Date` objects to ISO strings.
 
 ## Why this library?
 
@@ -44,20 +46,27 @@ const roundTrip = toonToJson(toon);
 console.log(roundTrip); // back to the original JSON object
 ```
 
-CommonJS usage:
-
-```js
-const { jsonToToon, toonToJson } = require('toon-parser');
-
-const toon = jsonToToon({ ok: true });
-console.log(toon);
-```
-
 ## API
 
 ### `jsonToToon(value, options?) => string`
 
 Encodes a JSON-compatible value into TOON text.
+
+### `xmlToToon(xml, options?) => string`
+
+Parses an XML string and converts it to TOON text.
+Accepts standard `JsonToToonOptions` plus an `xmlOptions` object passed to `fast-xml-parser`.
+
+```ts
+import { xmlToToon } from 'toon-parser';
+const toon = xmlToToon('<user id="1">Alice</user>');
+// user:
+//   "#text": Alice
+//   "@_id": 1
+```
+
+> [!WARNING]
+> **Security Note:** While `fast-xml-parser` v5 is generally secure by default, overriding `xmlOptions` can alter security properties (e.g., enabling entity expansion). Only enable such features if you trust the source XML.
 
 Options:
 - `indent` (number, default `2`): spaces per indentation level.
@@ -102,20 +111,6 @@ rows[2]{a,b}:
 ```
 
 Non-uniform arrays fall back to list form with `-` entries.
-
-### Round-trip arrays that include empty objects
-
-```ts
-const toon = jsonToToon({ items: [{}, { id: 1 }] });
-/*
-items[2]:
-  -
-  -
-    id: 1
-*/
-const decoded = toonToJson(toon);
-// { items: [{}, { id: 1 }] }
-```
 
 ### Handling unsafe keys
 
@@ -172,7 +167,6 @@ try {
 
 - **Tabular detection** follows the spec: all elements must be objects, share identical keys, and contain only primitives.
 - **String quoting** follows deterministic rules (quote numeric-looking strings, leading/trailing space, colon, delimiter, backslash, brackets, control chars, or leading hyphen).
-- **Leading zeros rejected**: unquoted integers like `007` throw to avoid octal-like ambiguity.
 - **Finite numbers only**: `NaN`, `Infinity`, and `-Infinity` are rejected.
 - **No implicit path expansion**: dotted keys stay literal (e.g., `a.b` remains a single key).
 

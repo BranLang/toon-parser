@@ -1,5 +1,9 @@
 # toon-parser
 
+[![CI](https://github.com/BranLang/toon-parser/actions/workflows/ci.yml/badge.svg)](https://github.com/BranLang/toon-parser/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/toon-parser.svg)](https://www.npmjs.com/package/toon-parser)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Safe JSON ⇆ TOON encoder/decoder with strict validation and prototype-pollution guards.
 
 ## Install
@@ -9,6 +13,10 @@ npm install toon-parser
 ```
 
 Note: this package supports both ESM and CommonJS consumers (CJS builds are available as `dist/index.cjs`). The package requires Node >= 18 per `engines` in `package.json`.
+
+## New in 2.0.0
+- **XML Support**: Convert XML strings directly to TOON with `xmlToToon`.
+- **Date Support**: Automatically converts `Date` objects to ISO strings.
 
 ## Why this library?
 
@@ -44,7 +52,25 @@ console.log(roundTrip); // back to the original JSON object
 
 Encodes a JSON-compatible value into TOON text.
 
-Options:
+### `xmlToToon(xml, options?) => string`
+
+Parses an XML string and converts it to TOON text.
+Accepts standard `JsonToToonOptions` plus an `xmlOptions` object passed to `fast-xml-parser`.
+
+```ts
+import { xmlToToon } from 'toon-parser';
+const toon = xmlToToon('<user id="1">Alice</user>');
+// user:
+//   "#text": Alice
+//   "@_id": 1
+```
+
+```
+67: 
+68: > [!WARNING]
+69: > **Security Note:** While `fast-xml-parser` v5 is generally secure by default, overriding `xmlOptions` can alter security properties (e.g., enabling entity expansion). Only enable such features if you trust the source XML.
+70: 
+71: Options:
 - `indent` (number, default `2`): spaces per indentation level.
 - `delimiter` (`,` | `|` | `\t`, default `,`): delimiter for inline arrays and tabular rows.
 - `sortKeys` (boolean, default `false`): sort object keys alphabetically instead of preserving encounter order.
