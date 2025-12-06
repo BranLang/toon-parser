@@ -173,3 +173,4 @@ try {
 ## Project status
 
 This library targets TOON spec v2.1 core behaviors commonly needed for JSON round-trips. It prioritizes correctness and safety over permissiveness; loosen validation via `strict: false` only when you fully trust the input source.
+
