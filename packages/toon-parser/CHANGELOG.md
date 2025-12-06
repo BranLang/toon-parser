@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.0.1] - 2025-12-06
+
+### Security
+- **CI/CD**: `npm audit` now fails on high/critical vulnerabilities.
+- **Docs**: Added security warning regarding `xmlOptions` in README.
+
+### Fixed
+- **Build**: Fixed CJS build output not resolving internal modules correctly; switched to `esbuild`.
+- **Types**: Fixed `package.json` exports order to prioritize types.
+
 ## [2.0.0] - 2025-12-06
 
 ### Major Changes
