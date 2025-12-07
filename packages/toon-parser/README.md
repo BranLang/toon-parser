@@ -1,7 +1,9 @@
 # toon-parser
 
 [![CI](https://github.com/BranLang/toon-parser/actions/workflows/ci.yml/badge.svg)](https://github.com/BranLang/toon-parser/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-87%25-green)](#coverage)
 [![npm version](https://img.shields.io/npm/v/toon-parser.svg)](https://www.npmjs.com/package/toon-parser)
+[![npm provenance](https://img.shields.io/badge/npm-provenance-blue)](https://docs.npmjs.com/generating-provenance-statements)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Safe JSON ⇆ TOON encoder/decoder with strict validation and prototype-pollution guards.
@@ -13,6 +15,9 @@ npm install toon-parser
 ```
 
 Note: this package supports both ESM and CommonJS consumers (CJS builds are available as `dist/index.cjs`). The package requires Node >= 18 per `engines` in `package.json`.
+
+## New in 2.1.0
+- **HTML/CSV/Log/URL Support**: Dedicated parsers for common formats to leverage Toon's structure.
 
 ## New in 2.0.0
 - **XML Support**: Convert XML strings directly to TOON with `xmlToToon`.
@@ -64,6 +69,32 @@ const toon = xmlToToon('<user id="1">Alice</user>');
 //   "#text": Alice
 //   "@_id": 1
 ```
+
+### `htmlToToon(html, options?) => string`
+
+Parses HTML string to Toon. Uses `node-html-parser`.
+
+### `csvToToon(csv, options?) => string`
+
+Parses CSV string. Options:
+- `delimiter` (default `,`)
+- `hasHeader` (default `true`)
+
+### `urlToToon(urlOrQs, options?) => string`
+Parses URL query strings to Toon object. Expands dotted/bracket notation (e.g. `user[name]`).
+
+### `logToToon(log, options?) => string`
+Parses logs. Options:
+- `format`: `'auto'` | `'clf'` | `'json'`
+
+### `csvToJson(csv, options?) => unknown[]`
+Lightweight CSV to JSON helper. Throws when row widths mismatch headers or when the delimiter is not a single character.
+
+### `htmlToJson(html) => { children: ... }`
+Parses HTML into a simplified JSON tree. Performs a minimal tag-balance check and trims whitespace-only nodes. Not intended for arbitrary HTML with scripts/styles.
+
+### `xmlToJson(xml, options?) => unknown`
+Validates XML before parsing; returns `{}` for empty input and throws on malformed XML.
 
 
 > [!WARNING]

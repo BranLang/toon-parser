@@ -14,13 +14,15 @@ npm install toon-parser
 
 Note: this package supports both ESM and CommonJS consumers (CJS builds are available as `dist/index.cjs`). The package requires Node >= 18 per `engines` in `package.json`.
 
-## New in 2.0.0
-- **XML Support**: Convert XML strings directly to TOON with `xmlToToon`.
-- **Date Support**: Automatically converts `Date` objects to ISO strings.
+## New in 2.1.0
+- **HTML/CSV/Log/URL Support**: Dedicated parsers for common formats to leverage Toon's structure.
+- **Example Extensions**: Check `examples/extensions` for usage.
+
 
 ## Why this library?
 
-- Implements the TOON v2.1 spec features most useful for JSON round-trips: tabular arrays, inline primitive arrays, nested objects/arrays, deterministic quoting.
+- **Universal Data Support**: Converts JSON, XML, HTML, CSV, Logs, and URL parameters into TOON's concise, human-readable format.
+- Implements TOON v2.1 spec features offering significant token savings: tabular arrays (perfect for CSV/Logs), inline primitive arrays, and deterministic quoting.
 - Hardened for untrusted input: prototype-pollution guards, max depth/length/node caps, strict length/width enforcement, and finite-number checks.
 - No dynamic code execution; parsing uses explicit token scanning and bounded state to resist resource exhaustion.
 
@@ -64,6 +66,23 @@ const toon = xmlToToon('<user id="1">Alice</user>');
 //   "#text": Alice
 //   "@_id": 1
 ```
+
+### `htmlToToon(html, options?) => string`
+
+Parses HTML string to Toon. Uses `node-html-parser`.
+
+### `csvToToon(csv, options?) => string`
+
+Parses CSV string. Options:
+- `delimiter` (default `,`)
+- `hasHeader` (default `true`)
+
+### `urlToToon(urlOrQs, options?) => string`
+Parses URL query strings to Toon object. Expands dotted/bracket notation (e.g. `user[name]`).
+
+### `logToToon(log, options?) => string`
+Parses logs. Options:
+- `format`: `'auto'` | `'clf'` | `'json'`
 
 > [!WARNING]
 > **Security Note:** While `fast-xml-parser` v5 is generally secure by default, overriding `xmlOptions` can alter security properties (e.g., enabling entity expansion). Only enable such features if you trust the source XML.
@@ -141,6 +160,69 @@ const result = toonToJson('nums[2]: 1', { strict: false });
 // result: { nums: [1] }
 ```
 
+### Converting external formats
+
+Leverage specialized parsers to bring other data formats into the TOON ecosystem.
+
+#### HTML
+HTML is converted into a structured object tree, preserving attributes and hierarchy.
+
+```ts
+import { htmlToToon } from 'toon-parser';
+
+const html = '<div class="card"><h3>Hello</h3></div>';
+console.log(htmlToToon(html));
+/*
+div:
+  "@_class": card
+  h3: Hello
+*/
+```
+
+#### CSV
+CSV data is automatically optimized into TOON's efficient tabular format.
+
+```ts
+import { csvToToon } from 'toon-parser';
+
+const csv = 'id,name\n1,Alice\n2,Bob';
+console.log(csvToToon(csv));
+/*
+[2]{id,name}:
+  1,Alice
+  2,Bob
+*/
+```
+
+#### URL Query Strings
+Query strings with nested bracket notation are expanded into deep objects.
+
+```ts
+import { urlToToon } from 'toon-parser';
+
+const url = 'filter[type]=user&filter[active]=true';
+console.log(urlToToon(url));
+/*
+filter:
+  type: user
+  active: true
+*/
+```
+
+#### Logs
+Common Log Format (CLF) logs are parsed into tabular arrays for high efficiency.
+
+```ts
+import { logToToon } from 'toon-parser';
+
+const log = '127.0.0.1 - - [10/Oct:12:00] "GET /" 200 512';
+console.log(logToToon(log, { format: 'clf' }));
+/*
+[1]{host,ident,authuser,date,request,status,size}:
+  127.0.0.1,-,-,"10/Oct:12:00",GET /,200,512
+*/
+```
+
 ### Security limits
 
 ```ts
@@ -165,12 +247,13 @@ try {
 
 ## Design choices
 
-- **Tabular detection** follows the spec: all elements must be objects, share identical keys, and contain only primitives.
-- **String quoting** follows deterministic rules (quote numeric-looking strings, leading/trailing space, colon, delimiter, backslash, brackets, control chars, or leading hyphen).
+- **Universal Tabular Support**: Detects tabular structures in JSON/CSV/Logs and optimizes them into compact TOON tables.
+- **Format-Preserving**: HTML and XML conversions preserve hierarchy and attributes (as keys) while ensuring output remains safe TOON.
+- **Deterministic Quoting**: String quoting follows strict rules to ensure round-trip safety.
 - **Finite numbers only**: `NaN`, `Infinity`, and `-Infinity` are rejected.
-- **No implicit path expansion**: dotted keys stay literal (e.g., `a.b` remains a single key).
+- **Explicit pathing**: Dotted keys in JSON stay literal (`a.b` is one key), while URL parsers explicit expand standard bracket notation.
 
 ## Project status
 
-This library targets TOON spec v2.1 core behaviors commonly needed for JSON round-trips. It prioritizes correctness and safety over permissiveness; loosen validation via `strict: false` only when you fully trust the input source.
+This library targets TOON spec v2.1 to serve as a universal bridge for structured data. It prioritizes correctness and safety over permissiveness; loosen validation via `strict: false` only when you fully trust the input source.
 

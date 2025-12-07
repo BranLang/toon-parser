@@ -1,4 +1,4 @@
-import { XMLParser, X2jOptions } from 'fast-xml-parser';
+import { XMLParser, XMLValidator, X2jOptions } from 'fast-xml-parser';
 import { jsonToToon, JsonToToonOptions } from './index.js';
 
 export interface XmlToToonOptions extends JsonToToonOptions {
@@ -34,6 +34,16 @@ const DEFAULT_XML_OPTIONS: Partial<X2jOptions> = {
  * @returns The resulting TOON string.
  */
 export function xmlToToon(xml: string, options: XmlToToonOptions = {}): string {
+  const trimmed = xml.trim();
+  if (!trimmed) {
+    return jsonToToon({}, options);
+  }
+
+  const validation = XMLValidator.validate(xml);
+  if (validation !== true) {
+    throw new Error('Malformed XML');
+  }
+
   const parser = new XMLParser({
     ...DEFAULT_XML_OPTIONS,
     ...options.xmlOptions
@@ -41,4 +51,20 @@ export function xmlToToon(xml: string, options: XmlToToonOptions = {}): string {
 
   const jsonObj = parser.parse(xml);
   return jsonToToon(jsonObj, options);
+}
+
+export function xmlToJson(xml: string, options: XmlToToonOptions = {}): unknown {
+  if (!xml.trim()) return {};
+
+  const validation = XMLValidator.validate(xml);
+  if (validation !== true) {
+    throw new Error('Malformed XML');
+  }
+
+  const parser = new XMLParser({
+    ...DEFAULT_XML_OPTIONS,
+    ...options.xmlOptions
+  });
+
+  return parser.parse(xml);
 }
