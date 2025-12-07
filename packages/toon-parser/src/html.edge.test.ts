@@ -12,3 +12,8 @@ test('malformed HTML throws error', () => {
   const badHtml = '<div><span>Missing closing tags';
   expect(() => htmlToJson(badHtml)).toThrow();
 });
+
+test('hostile input does not hang (no ReDoS)', () => {
+  const hostile = '<0'.repeat(5000); // not a valid tag, should be treated as text
+  expect(() => htmlToJson(hostile)).not.toThrow();
+});
