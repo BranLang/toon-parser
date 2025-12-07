@@ -1,0 +1,12 @@
+{
+    "name": "json-toon-extensions-example",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "dependencies": {
+        "toon-parser": "*"
+    },
+    "scripts": {
+        "start": "node index.mjs"
+    }
+}

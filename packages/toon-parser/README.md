@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/BranLang/toon-parser/actions/workflows/ci.yml/badge.svg)](https://github.com/BranLang/toon-parser/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/toon-parser.svg)](https://www.npmjs.com/package/toon-parser)
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
+[![Provenance](https://img.shields.io/badge/provenance-%E2%9C%93-green)](https://github.com/BranLang/toon-parser)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Safe JSON ⇆ TOON encoder/decoder with strict validation and prototype-pollution guards.
@@ -13,6 +15,9 @@ npm install toon-parser
 ```
 
 Note: this package supports both ESM and CommonJS consumers (CJS builds are available as `dist/index.cjs`). The package requires Node >= 18 per `engines` in `package.json`.
+
+## New in 2.1.0
+- **HTML/CSV/Log/URL Support**: Dedicated parsers for common formats to leverage Toon's structure.
 
 ## New in 2.0.0
 - **XML Support**: Convert XML strings directly to TOON with `xmlToToon`.
@@ -64,6 +69,23 @@ const toon = xmlToToon('<user id="1">Alice</user>');
 //   "#text": Alice
 //   "@_id": 1
 ```
+
+### `htmlToToon(html, options?) => string`
+
+Parses HTML string to Toon. Uses `node-html-parser`.
+
+### `csvToToon(csv, options?) => string`
+
+Parses CSV string. Options:
+- `delimiter` (default `,`)
+- `hasHeader` (default `true`)
+
+### `urlToToon(urlOrQs, options?) => string`
+Parses URL query strings to Toon object. Expands dotted/bracket notation (e.g. `user[name]`).
+
+### `logToToon(log, options?) => string`
+Parses logs. Options:
+- `format`: `'auto'` | `'clf'` | `'json'`
 
 
 > [!WARNING]
