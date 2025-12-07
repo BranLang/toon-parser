@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased]
+
+### Security
+- Replaced regex-based HTML validation with a linear scan to remove potential ReDoS vectors.
+- Added XML validation in `xmlToToon` and delimiter/row-width checks in CSV helpers for stricter input handling.
+
+### Tooling
+- Added `npm run coverage` using Vitest coverage; CI now relies on this step without `nyc` to avoid missing output errors.
+- Added provenance and test/coverage badges to README.
+
+### Docs
+- Documented `csvToJson`, `htmlToJson`, `xmlToJson` behaviors and limitations.
+- Updated SECURITY policy with provenance and safe-configuration guidance.
+
 ## [2.1.0] - 2025-12-07
 
 ### Added
