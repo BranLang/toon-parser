@@ -15,6 +15,9 @@ export interface CsvToToonOptions extends Omit<JsonToToonOptions, 'delimiter'> {
 
 export function csvToToon(csv: string, options: CsvToToonOptions = {}): string {
   const delimiter = options.delimiter ?? ',';
+  if (delimiter.length !== 1) {
+    throw new Error('Delimiter must be a single character');
+  }
   const hasHeader = options.hasHeader ?? true;
 
   const rows: string[][] = parseCsv(csv, delimiter);
@@ -26,8 +29,15 @@ export function csvToToon(csv: string, options: CsvToToonOptions = {}): string {
   if (hasHeader) {
     const header = rows[0];
     if (!header) return jsonToToon([], options as JsonToToonOptions);
+    const width = header.length;
+    const dataRows = rows.slice(1);
+    for (const row of dataRows) {
+      if (row.length !== width) {
+        throw new Error('Malformed CSV: row length mismatch');
+      }
+    }
     
-    const data = rows.slice(1).map(row => {
+    const data = dataRows.map(row => {
       const obj: Record<string, unknown> = {};
       header.forEach((key, index) => {
         obj[key] = inferType(row[index] ?? '');
@@ -49,6 +59,9 @@ export interface CsvToJsonOptions {
 
 export function csvToJson(csv: string, options: CsvToJsonOptions = {}): unknown[] {
   const delimiter = options.delimiter ?? ',';
+  if (delimiter.length !== 1) {
+    throw new Error('Delimiter must be a single character');
+  }
   const hasHeader = options.hasHeader ?? true;
   const rows = parseCsv(csv, delimiter);
 

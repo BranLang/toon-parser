@@ -87,6 +87,15 @@ Parses URL query strings to Toon object. Expands dotted/bracket notation (e.g. `
 Parses logs. Options:
 - `format`: `'auto'` | `'clf'` | `'json'`
 
+### `csvToJson(csv, options?) => unknown[]`
+Lightweight CSV to JSON helper. Throws when row widths mismatch headers or when the delimiter is not a single character.
+
+### `htmlToJson(html) => { children: ... }`
+Parses HTML into a simplified JSON tree. Performs a minimal tag-balance check and trims whitespace-only nodes. Not intended for arbitrary HTML with scripts/styles.
+
+### `xmlToJson(xml, options?) => unknown`
+Validates XML before parsing; returns `{}` for empty input and throws on malformed XML.
+
 
 > [!WARNING]
 > **Security Note:** While `fast-xml-parser` v5 is generally secure by default, overriding `xmlOptions` can alter security properties (e.g., enabling entity expansion). Only enable such features if you trust the source XML.

@@ -1,4 +1,4 @@
-import { xmlToJson } from '../src/xml';
+import { xmlToJson, xmlToToon } from '../src/xml';
 import { expect, test } from 'vitest';
 
 test('malformed XML throws error', () => {
@@ -10,4 +10,9 @@ test('empty XML returns empty object', () => {
   const empty = '';
   const result = xmlToJson(empty);
   expect(result).toEqual({});
+});
+
+test('malformed XML throws in xmlToToon', () => {
+  const badXml = '<root><unclosed></root>';
+  expect(() => xmlToToon(badXml)).toThrow();
 });
