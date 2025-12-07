@@ -42,6 +42,43 @@ export function csvToToon(csv: string, options: CsvToToonOptions = {}): string {
   }
 }
 
+export interface CsvToJsonOptions {
+  delimiter?: string;
+  hasHeader?: boolean;
+}
+
+export function csvToJson(csv: string, options: CsvToJsonOptions = {}): unknown[] {
+  const delimiter = options.delimiter ?? ',';
+  const hasHeader = options.hasHeader ?? true;
+  const rows = parseCsv(csv, delimiter);
+
+  if (rows.length === 0) return [];
+
+  if (hasHeader) {
+    const header = rows[0];
+    if (!header || header.length === 0) return [];
+    const width = header.length;
+
+    const body = rows.slice(1);
+    for (const row of body) {
+      if (row.length !== width) {
+        throw new Error('Malformed CSV: row length mismatch');
+      }
+    }
+
+    return body.map(row => {
+      const obj: Record<string, unknown> = {};
+      header.forEach((key, idx) => {
+        obj[key] = inferType(row[idx] ?? '');
+      });
+      return obj;
+    });
+  }
+
+  // no header: return array of arrays with primitive inference
+  return rows.map(row => row.map(cell => inferType(cell)));
+}
+
 function parseCsv(text: string, delimiter: string): string[][] {
   const rows: string[][] = [];
   let currentRow: string[] = [];
