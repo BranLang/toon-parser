@@ -18,8 +18,6 @@ Note: this package supports both ESM and CommonJS consumers (CJS builds are avai
 
 ## New in 2.1.0
 - **HTML/CSV/Log/URL Support**: Dedicated parsers for common formats to leverage Toon's structure.
-
-## New in 2.0.0
 - **XML Support**: Convert XML strings directly to TOON with `xmlToToon`.
 - **Date Support**: Automatically converts `Date` objects to ISO strings.
 
