@@ -1,9 +1,9 @@
 # toon-parser
 
 [![CI](https://github.com/BranLang/toon-parser/actions/workflows/ci.yml/badge.svg)](https://github.com/BranLang/toon-parser/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-87%25-green)](#coverage)
 [![npm version](https://img.shields.io/npm/v/toon-parser.svg)](https://www.npmjs.com/package/toon-parser)
-[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
-[![Provenance](https://img.shields.io/badge/provenance-%E2%9C%93-green)](https://github.com/BranLang/toon-parser)
+[![npm provenance](https://img.shields.io/badge/npm-provenance-blue)](https://docs.npmjs.com/generating-provenance-statements)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Safe JSON ⇆ TOON encoder/decoder with strict validation and prototype-pollution guards.
