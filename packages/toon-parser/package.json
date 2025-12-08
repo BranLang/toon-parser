@@ -50,7 +50,7 @@
   "license": "MIT",
   "sideEffects": false,
   "devDependencies": {
-    "fast-check": "^4.3.0",
+    "fast-check": "^4.4.0",
     "rimraf": "^6.0.0",
     "eslint": "^9.0.0",
     "@typescript-eslint/parser": "^8.48.1",
