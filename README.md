@@ -12,7 +12,13 @@ Safe JSON ⇆ TOON encoder/decoder with strict validation and prototype-pollutio
 npm install toon-parser
 ```
 
-Note: this package supports both ESM and CommonJS consumers (CJS builds are available as `dist/index.cjs`). The package requires Node >= 18 per `engines` in `package.json`.
+Note: this package supports both ESM and CommonJS consumers (CJS builds are available as `dist/index.cjs`). The package requires Node >= 20 per `engines` in `package.json`.
+
+## New in 2.2.0
+- **Security**: Fixed 8 dependency vulnerabilities (1 critical `fast-xml-parser` with 6 CVEs, 5 high, 2 moderate).
+- **Dependencies**: Updated all dependencies to latest versions (vitest 4, TypeScript 5.9, fast-xml-parser 5.5.9).
+- **Node.js**: Minimum version bumped to Node 20 (Node 18 reached EOL April 2025).
+- **Build**: `esbuild` is now an explicit dependency; test files excluded from published tarball.
 
 ## New in 2.1.0
 - **HTML/CSV/Log/URL Support**: Dedicated parsers for common formats to leverage Toon's structure.
