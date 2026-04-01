@@ -1,6 +1,6 @@
 {
   "name": "json-toon-parser",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -9,10 +9,10 @@
     "examples/*"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "overrides": {
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.27.4"
   },
   "repository": {
     "type": "git",
@@ -30,9 +30,9 @@
     "example": "npm run build && npm run start -w json-toon-example"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^2.1.8",
-    "@types/node": "^24.10.1",
-    "typescript": "^5.6.3",
-    "vitest": "^2.1.8"
+    "@vitest/coverage-v8": "^4.1.2",
+    "@types/node": "^25.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.2"
   }
 }

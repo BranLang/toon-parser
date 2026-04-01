@@ -7,10 +7,12 @@ export default defineConfig({
     coverage: {
       reporter: ['text', 'lcov'],
       enabled: true,
-      statements: 80,
-      branches: 70,
-      functions: 90,
-      lines: 80,
+      thresholds: {
+        statements: 80,
+        branches: 70,
+        functions: 90,
+        lines: 80
+      },
       exclude: ['**/dist/**', 'examples/**']
     }
   }
