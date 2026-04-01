@@ -14,7 +14,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "!dist/**/*.test.*"
   ],
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -41,7 +42,7 @@
   "author": "Branislav Lang",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BranLang/toon-parser"
+    "url": "git+https://github.com/BranLang/toon-parser.git"
   },
   "bugs": {
     "url": "https://github.com/BranLang/toon-parser/issues"
