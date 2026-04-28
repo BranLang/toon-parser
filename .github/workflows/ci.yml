@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20, 22]
+        node-version: [20, 22, 24]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,6 +43,11 @@ jobs:
       - name: Run CJS require test
         run: |
           node -e "const mod=require('./packages/toon-parser/dist/index.cjs'); console.log('CJS load ok', typeof mod.jsonToToon==='function'); if (typeof mod.jsonToToon !== 'function') { process.exit(2) }"
+
+      - name: Examples smoke
+        run: |
+          node examples/basic/index.mjs > /dev/null
+          node examples/extensions/index.mjs > /dev/null
 
       - name: NPM pack verification
         run: |

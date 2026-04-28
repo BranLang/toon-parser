@@ -2,6 +2,46 @@
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-04-28
+
+This release aligns the library with the **TOON v3.0** specification (Working Draft, 2025-11-24)
+and bundles a security audit pass. Existing v2.x output and parsing behavior is preserved —
+new features are opt-in.
+
+### Security
+- **Fix (high)**: prototype pollution in `urlToToon`. Bracketed/dotted query parameters with
+  `__proto__`, `constructor`, or `prototype` segments could mutate `Object.prototype` via the
+  intermediate-object walk in `assignDeep`. Path walking now uses `Object.create(null)`,
+  `hasOwnProperty` lookups, and rejects any segment in `disallowedKeys` with `ToonError`.
+- New `maxInputLength` security option (default 5 MB) on every `*ToToon` / `*ToJson` /
+  `toonToJson` entry point caps raw input size before parsing. Pass `Infinity` to disable.
+- Side-format adapters (`csvToToon`, `xmlToToon`, `htmlToToon`, `logToToon`, `urlToToon`)
+  now throw `ToonError` instead of plain `Error` so `instanceof ToonError` works uniformly.
+
+### Added
+- **TOON v3.0 alignment**: opt-in **§13.4 key folding** (encoder) and **path expansion** (decoder).
+  - `jsonToToon(value, { keyFolding: 'safe', flattenDepth?: number })` folds single-key object chains into dotted paths (`{a:{b:{c:1}}}` → `a.b.c: 1`).
+  - `toonToJson(text, { expandPaths: 'safe' })` expands dotted keys back into nested objects, with deep-merge and strict-mode conflict detection.
+  - All segments must satisfy the v3 IdentifierSegment grammar (`^[A-Za-z_][A-Za-z0-9_]*$`); folding/expansion refuses to bridge `disallowedKeys` (prototype-pollution guard).
+- **Sub-path exports** — `toon-parser/csv`, `toon-parser/xml`, `toon-parser/html`, `toon-parser/log`, `toon-parser/url`. Adapters now import from a slim `core.ts` so importing `toon-parser/csv` no longer drags in xml/html/log/url. Both ESM and CJS conditions are wired.
+- **Bench suite** — `npm run bench` runs Vitest benchmarks comparing encoder/decoder against `JSON.stringify`/`JSON.parse` and tracks key folding overhead.
+- New tests: `v3.keyfolding.test.ts`, `url.security.test.ts`, `maxInputLength.test.ts`, `parser.errorpaths.test.ts`, `subpath.test.ts`.
+- Exported `enforceInputLength(text, options?)` helper for downstream packages that wrap
+  TOON inputs.
+
+### Changed
+- Project now targets TOON spec v3.0 (was v2.1). No breaking changes to existing inputs/outputs — v3 additions are opt-in.
+- Extracted shared `inferType` helper (`src/inferType.ts`) for CSV/URL adapters; tightened
+  number detection (now matches the strict numeric grammar — no hex coercion, no
+  whitespace-only `0`, no leading-zero numbers).
+- Refactored the 1180-line `index.ts` into a slim barrel + `core.ts` + `internal/` modules (`constants`, `errors`, `types`, `security`, `primitives`). Public API surface is unchanged.
+- **`logToToon`**: now parses **Combined Log Format** (referer + user-agent) in addition to Common. `format` option accepts `'combined'` and `'auto'` tries Combined first, then Common. New fields: `ident`, `authuser`, and `referer`/`userAgent` for Combined. `size` is `null` (was `0`) when the log emits `-`. The previous single-shot CLF regex hardcoded `- -` for ident/authuser; existing valid CLF inputs still parse — emitted field sets are wider.
+- **`maxTotalNodes` accounting** is now ~2× tighter for nested objects/arrays. The previous accounting double-counted via redundant `enforceLimits` calls; a new `enforceDepth` helper does pure depth checks where the caller has already accounted for the node. The default `250_000` budget now permits roughly twice as many real fields/items as before.
+- Examples now run as part of CI (`npm run smoke`) so adapter regressions are caught before publish.
+- Workspace `lint` script migrated to ESLint 9 flat config (`eslint.config.js`); the previous `--ext` flag (removed in ESLint 9) had broken `npm run lint -w toon-parser`.
+- Dependency bumps: `fast-xml-parser` 5.5.9 → 5.7.2, `vitest` 4.1.2 → 4.1.5, `@vitest/coverage-v8` 4.1.2 → 4.1.5, `@typescript-eslint/*` 8.58 → 8.59, `fast-check` 4.6 → 4.7, `@types/node` 25.5 → 25.6, `esbuild` override 0.27.4 → 0.27.7.
+- CI matrix now tests Node 20, 22, and 24.
+
 ## [2.2.0] - 2026-04-01
 
 ### Security

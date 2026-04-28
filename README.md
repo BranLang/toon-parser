@@ -14,21 +14,28 @@ npm install toon-parser
 
 Note: this package supports both ESM and CommonJS consumers (CJS builds are available as `dist/index.cjs`). The package requires Node >= 20 per `engines` in `package.json`.
 
-## New in 2.2.0
-- **Security**: Fixed 8 dependency vulnerabilities (1 critical `fast-xml-parser` with 6 CVEs, 5 high, 2 moderate).
-- **Dependencies**: Updated all dependencies to latest versions (vitest 4, TypeScript 5.9, fast-xml-parser 5.5.9).
-- **Node.js**: Minimum version bumped to Node 20 (Node 18 reached EOL April 2025).
-- **Build**: `esbuild` is now an explicit dependency; test files excluded from published tarball.
+## New in 3.0.0
+- **Aligned with TOON spec v3.0** (Working Draft, 2025-11-24). No breaking changes to existing input/output — v3 features are opt-in.
+- **§13.4 key folding** (encoder) and **path expansion** (decoder). Single-key chains can collapse into dotted paths (`{a:{b:{c:1}}}` → `a.b.c: 1`) and round-trip back. See [Key folding & path expansion](#key-folding--path-expansion-toon-v3-§134) below.
+- **Security**: fixed a prototype pollution vector in `urlToToon` (bracket/dotted `__proto__` / `constructor` / `prototype` segments now throw `ToonError` and never reach `Object.prototype`). New `maxInputLength` option (default 5 MB) caps raw input size on every parser entry point. All side-format adapters now throw `ToonError` (not plain `Error`).
+- **Sub-path exports** — import only the adapter you need: `toon-parser/csv`, `toon-parser/xml`, `toon-parser/html`, `toon-parser/log`, `toon-parser/url`. Bundlers can now drop the unused adapters from your output.
+- CI matrix now covers Node 20, 22, and 24.
+- Routine dependency bumps (`fast-xml-parser` 5.7.2, `vitest` 4.1.5, `@typescript-eslint/*` 8.59, `fast-check` 4.7).
 
-## New in 2.1.0
-- **HTML/CSV/Log/URL Support**: Dedicated parsers for common formats to leverage Toon's structure.
-- **Example Extensions**: Check `examples/extensions` for usage.
+### Tree-shaking via sub-path imports
 
+```ts
+// Pulls in only the CSV adapter + the core encoder; xml/html/log/url stay out of the bundle.
+import { csvToToon } from 'toon-parser/csv';
+
+// The barrel still works — use this when you want everything.
+import { jsonToToon, csvToToon, xmlToToon } from 'toon-parser';
+```
 
 ## Why this library?
 
 - **Universal Data Support**: Converts JSON, XML, HTML, CSV, Logs, and URL parameters into TOON's concise, human-readable format.
-- Implements TOON v2.1 spec features offering significant token savings: tabular arrays (perfect for CSV/Logs), inline primitive arrays, and deterministic quoting.
+- Implements TOON v3.0 spec features offering significant token savings: tabular arrays (perfect for CSV/Logs), inline primitive arrays, deterministic quoting, and opt-in §13.4 key folding / path expansion.
 - Hardened for untrusted input: prototype-pollution guards, max depth/length/node caps, strict length/width enforcement, and finite-number checks.
 - No dynamic code execution; parsing uses explicit token scanning and bounded state to resist resource exhaustion.
 
@@ -87,8 +94,14 @@ Parses CSV string. Options:
 Parses URL query strings to Toon object. Expands dotted/bracket notation (e.g. `user[name]`).
 
 ### `logToToon(log, options?) => string`
-Parses logs. Options:
-- `format`: `'auto'` | `'clf'` | `'json'`
+Parses logs into TOON tabular form. Options:
+- `format`: `'auto'` | `'clf'` | `'combined'` | `'json'` (default `'auto'`)
+  - `'auto'` tries Combined Log Format first (with referer + user-agent), falls back to Common Log Format, then to a `{ raw }` line on no match.
+  - `'clf'` accepts both Common and Combined variants.
+  - `'combined'` accepts only Combined Log Format.
+  - `'json'` parses NDJSON (one JSON object per line); malformed lines become `{ raw }`.
+
+Field set: `host`, `ident`, `authuser`, `date`, `request`, `status`, `size` (plus `referer`, `userAgent` for Combined). `size` is `null` when the log emits `-`.
 
 > [!WARNING]
 > **Security Note:** While `fast-xml-parser` v5 is generally secure by default, overriding `xmlOptions` can alter security properties (e.g., enabling entity expansion). Only enable such features if you trust the source XML.
@@ -259,7 +272,60 @@ try {
 - **Finite numbers only**: `NaN`, `Infinity`, and `-Infinity` are rejected.
 - **Explicit pathing**: Dotted keys in JSON stay literal (`a.b` is one key), while URL parsers explicit expand standard bracket notation.
 
+### Key folding & path expansion (TOON v3 §13.4)
+
+Both are **opt-in** and default to `'off'`, so existing output and parsing behavior are unchanged.
+
+**Encoder** — collapse single-key object chains into dotted paths:
+
+```ts
+jsonToToon({ a: { b: { c: 1 } } }, { keyFolding: 'safe' });
+// "a.b.c: 1"
+
+jsonToToon(
+  { data: { meta: { items: [{ id: 1 }, { id: 2 }] } } },
+  { keyFolding: 'safe' }
+);
+// data.meta.items[2]{id}:
+//   1
+//   2
+```
+
+Cap fold length with `flattenDepth` (defaults to `Infinity`):
+
+```ts
+jsonToToon({ a: { b: { c: { d: 1 } } } }, { keyFolding: 'safe', flattenDepth: 2 });
+// a.b:
+//   c.d: 1
+```
+
+A chain is foldable only when:
+1. Every step is an object with exactly one key.
+2. Every segment matches the IdentifierSegment grammar `^[A-Za-z_][A-Za-z0-9_]*$`.
+3. The leaf is a primitive, array, `Date`, or empty object.
+4. The folded path doesn't collide with a literal sibling.
+5. No segment is in `disallowedKeys` (prototype-pollution guard).
+
+**Decoder** — expand dotted keys into nested objects:
+
+```ts
+toonToJson('a.b.c: 1', { expandPaths: 'safe' });
+// { a: { b: { c: 1 } } }
+
+toonToJson(['a.b.c: 1', 'a.b.d: 2', 'a.e: 3'].join('\n'), { expandPaths: 'safe' });
+// { a: { b: { c: 1, d: 2 }, e: 3 } }
+```
+
+Conflicting paths throw `ToonError` in strict mode (default), or last-write-wins when `strict: false`:
+
+```ts
+toonToJson('a.b: 1\na: 2', { expandPaths: 'safe' }); // throws — object vs primitive
+toonToJson('a.b: 1\na: 2', { expandPaths: 'safe', strict: false }); // { a: 2 }
+```
+
+Disallowed segments (e.g. `__proto__`) cause `ToonError` regardless of `strict`.
+
 ## Project status
 
-This library targets TOON spec v2.1 to serve as a universal bridge for structured data. It prioritizes correctness and safety over permissiveness; loosen validation via `strict: false` only when you fully trust the input source.
+This library targets the **TOON v3.0** spec (Working Draft, 2025-11-24). All v2.1 features remain supported; v3 adopt-as-needed extensions (key folding, path expansion) are opt-in. The library prioritizes correctness and safety over permissiveness; loosen validation via `strict: false` only when you fully trust the input source.
 
