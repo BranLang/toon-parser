@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-04-28
+
+### Docs
+- Synced `packages/toon-parser/README.md` (the README that npm publishes) with
+  the 3.0.0 changes. The 3.0.0 release shipped with the prior workspace README
+  that still referenced TOON spec v2.1 and listed obsolete "New in 2.x"
+  sections. The package itself was correct in 3.0.0 — only the README on
+  https://www.npmjs.com/package/toon-parser was stale.
+
+### Build
+- Replaced the shell-glob `esbuild src/**/*.ts` invocation with a small
+  Node script (`scripts/build-cjs.mjs`) that uses esbuild's API. The shell
+  glob relied on bash `globstar` which is off by default on Ubuntu CI, so
+  the previous CJS build silently dropped every top-level source file once
+  `src/internal/` and `src/bench/` subdirectories existed. Local zsh
+  expanded `**` correctly and masked the bug.
+
 ## [3.0.0] - 2026-04-28
 
 This release aligns the library with the **TOON v3.0** specification (Working Draft, 2025-11-24)
