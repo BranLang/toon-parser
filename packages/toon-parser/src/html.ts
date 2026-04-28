@@ -1,7 +1,8 @@
 import { parse, HTMLElement, Node, NodeType } from 'node-html-parser';
-import { jsonToToon, JsonToToonOptions } from './index.js';
+import { jsonToToon, JsonToToonOptions, ToonError, enforceInputLength } from './core.js';
 
 export function htmlToToon(html: string, options: JsonToToonOptions = {}): string {
+  enforceInputLength(html, options);
   validateWellFormedHtml(html);
   const root = parse(html);
   // remove whitespace-only text nodes for clean output
@@ -26,7 +27,8 @@ type HtmlJsonNode = {
  * Parse HTML into a simplified JSON structure (used for edge-case tests).
  * Throws when tags are unbalanced (very lightweight validation).
  */
-export function htmlToJson(html: string): { children: HtmlJsonNode[] } {
+export function htmlToJson(html: string, options: { maxInputLength?: number } = {}): { children: HtmlJsonNode[] } {
+  enforceInputLength(html, options);
   validateWellFormedHtml(html);
   const root = parse(html);
   removeWhitespace(root);
@@ -181,7 +183,7 @@ function validateWellFormedHtml(html: string): void {
       j++;
     }
     if (j >= len) {
-      throw new Error(`Malformed HTML: unclosed tag <${tagName}>`);
+      throw new ToonError(`Malformed HTML: unclosed tag <${tagName}>`);
     }
 
     if (voidTags.has(tagName) || selfClosing) {
@@ -191,7 +193,7 @@ function validateWellFormedHtml(html: string): void {
     } else {
       const top = stack.pop();
       if (top !== tagName) {
-        throw new Error(`Malformed HTML: unexpected closing tag </${tagName}>`);
+        throw new ToonError(`Malformed HTML: unexpected closing tag </${tagName}>`);
       }
     }
 
@@ -199,6 +201,6 @@ function validateWellFormedHtml(html: string): void {
   }
 
   if (stack.length > 0) {
-    throw new Error(`Malformed HTML: unclosed tag <${stack[stack.length - 1]}>`);
+    throw new ToonError(`Malformed HTML: unclosed tag <${stack[stack.length - 1]}>`);
   }
 }

@@ -5,3 +5,4 @@ dist
 *.log
 packages/toon-parser/dist
 tmp-pack
+*.tsbuildinfo

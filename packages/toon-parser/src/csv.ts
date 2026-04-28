@@ -1,4 +1,5 @@
-import { jsonToToon, JsonToToonOptions } from './index.js';
+import { jsonToToon, JsonToToonOptions, ToonError, enforceInputLength } from './core.js';
+import { inferType } from './inferType.js';
 
 export interface CsvToToonOptions extends Omit<JsonToToonOptions, 'delimiter'> {
   /**
@@ -14,9 +15,10 @@ export interface CsvToToonOptions extends Omit<JsonToToonOptions, 'delimiter'> {
 }
 
 export function csvToToon(csv: string, options: CsvToToonOptions = {}): string {
+  enforceInputLength(csv, options);
   const delimiter = options.delimiter ?? ',';
   if (delimiter.length !== 1) {
-    throw new Error('Delimiter must be a single character');
+    throw new ToonError('Delimiter must be a single character');
   }
   const hasHeader = options.hasHeader ?? true;
 
@@ -33,7 +35,7 @@ export function csvToToon(csv: string, options: CsvToToonOptions = {}): string {
     const dataRows = rows.slice(1);
     for (const row of dataRows) {
       if (row.length !== width) {
-        throw new Error('Malformed CSV: row length mismatch');
+        throw new ToonError('Malformed CSV: row length mismatch');
       }
     }
     
@@ -55,12 +57,14 @@ export function csvToToon(csv: string, options: CsvToToonOptions = {}): string {
 export interface CsvToJsonOptions {
   delimiter?: string;
   hasHeader?: boolean;
+  maxInputLength?: number;
 }
 
 export function csvToJson(csv: string, options: CsvToJsonOptions = {}): unknown[] {
+  enforceInputLength(csv, options);
   const delimiter = options.delimiter ?? ',';
   if (delimiter.length !== 1) {
-    throw new Error('Delimiter must be a single character');
+    throw new ToonError('Delimiter must be a single character');
   }
   const hasHeader = options.hasHeader ?? true;
   const rows = parseCsv(csv, delimiter);
@@ -75,7 +79,7 @@ export function csvToJson(csv: string, options: CsvToJsonOptions = {}): unknown[
     const body = rows.slice(1);
     for (const row of body) {
       if (row.length !== width) {
-        throw new Error('Malformed CSV: row length mismatch');
+        throw new ToonError('Malformed CSV: row length mismatch');
       }
     }
 
@@ -148,15 +152,3 @@ function parseCsv(text: string, delimiter: string): string[][] {
   return rows;
 }
 
-function inferType(val: string): string | number | boolean {
-  if (val === 'true') return true;
-  if (val === 'false') return false;
-  if (val === 'null') return 'null'; // keep string null? or null value? usually string in CSV
-  // Attempt number conversion
-  if (val.trim() === '') return '';
-  const num = Number(val);
-  if (!isNaN(num) && !val.includes(',')) { // simple check
-     return num;
-  }
-  return val;
-}

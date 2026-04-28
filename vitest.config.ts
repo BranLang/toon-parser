@@ -3,6 +3,9 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['packages/**/?(*.)+(spec|test).ts'],
+    benchmark: {
+      include: ['packages/**/*.bench.ts']
+    },
     environment: 'node',
     coverage: {
       reporter: ['text', 'lcov'],
@@ -13,7 +16,7 @@ export default defineConfig({
         functions: 90,
         lines: 80
       },
-      exclude: ['**/dist/**', 'examples/**']
+      exclude: ['**/dist/**', 'examples/**', '**/*.bench.ts', '**/bench/**']
     }
   }
 });

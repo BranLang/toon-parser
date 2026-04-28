@@ -13,32 +13,37 @@ if (!fs.existsSync(distCjsDir)) {
   process.exit(1);
 }
 
-for (const file of fs.readdirSync(distCjsDir)) {
-  const src = path.join(distCjsDir, file);
-  let destName = file;
-
-  // Rename the JS file to .cjs so it can be consumed by require()
-  if (file.endsWith('.js')) {
-    destName = file.replace(/\.js$/, '.cjs');
-  }
-
-  const dest = path.join(distDir, destName);
-  
-  if (file.endsWith('.js')) {
-    let content = fs.readFileSync(src, 'utf8');
-    // Rewrite relative requires from .js to .cjs
-    // Matches require("./foo.js") or require('../foo.js')
-    content = content.replace(/(require\(["']\..+?)\.js(["']\))/g, '$1.cjs$2');
-    fs.writeFileSync(dest, content);
-  } else {
-    fs.copyFileSync(src, dest);
+// Walk dist/cjs recursively, mirroring the structure under dist/, renaming
+// `.js` outputs to `.cjs` and rewriting relative requires to match.
+function processDir(srcDir, destDir) {
+  fs.mkdirSync(destDir, { recursive: true });
+  for (const entry of fs.readdirSync(srcDir, { withFileTypes: true })) {
+    const src = path.join(srcDir, entry.name);
+    if (entry.isDirectory()) {
+      processDir(src, path.join(destDir, entry.name));
+      continue;
+    }
+    const dest = path.join(
+      destDir,
+      entry.name.endsWith('.js') ? entry.name.replace(/\.js$/, '.cjs') : entry.name
+    );
+    if (entry.name.endsWith('.js')) {
+      let content = fs.readFileSync(src, 'utf8');
+      // Rewrite relative requires from .js to .cjs to match the renamed files.
+      content = content.replace(/(require\(["']\..+?)\.js(["']\))/g, '$1.cjs$2');
+      fs.writeFileSync(dest, content);
+    } else {
+      fs.copyFileSync(src, dest);
+    }
   }
 }
 
-// Optionally cleanup the cjs intermediate directory
+processDir(distCjsDir, distDir);
+
+// Cleanup the cjs intermediate directory.
 try {
   fs.rmSync(distCjsDir, { recursive: true, force: true });
-} catch (e) {
+} catch {
   // ignore cleanup errors
 }
 
