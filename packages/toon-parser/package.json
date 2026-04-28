@@ -51,7 +51,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build:types": "tsc -p tsconfig.json --emitDeclarationOnly",
     "build:js": "tsc -p tsconfig.json",
-    "build:cjs": "esbuild src/**/*.ts --format=cjs --outdir=dist/cjs --platform=node && node ./scripts/build-copy-cjs-output.js",
+    "build:cjs": "node ./scripts/build-cjs.mjs && node ./scripts/build-copy-cjs-output.js",
     "build": "npm run typecheck && npm run build:types && npm run build:js && npm run build:cjs",
     "clean": "rimraf dist",
     "clean:node": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
