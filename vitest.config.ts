@@ -16,7 +16,16 @@ export default defineConfig({
         functions: 90,
         lines: 80
       },
-      exclude: ['**/dist/**', 'examples/**', '**/*.bench.ts', '**/bench/**']
+      exclude: [
+        '**/dist/**',
+        'examples/**',
+        '**/*.bench.ts',
+        '**/bench/**',
+        '**/*.test.ts',
+        '**/scripts/**',
+        '**/eslint.config.js',
+        '**/vitest.config.ts'
+      ]
     }
   }
 });

@@ -58,4 +58,20 @@ describe('Coverage & Edge Case Gaps', () => {
          expect(() => toonToJson('[1]{__proto__}:\n  1')).toThrow(/Disallowed key "__proto__"/);
      });
   });
+
+  describe('List item: same-line "- key: value" form', () => {
+    it('decodes a list of single-key objects from inline form', () => {
+      const text = ['items[2]:', '  - k: v1', '  - k: v2'].join('\n');
+      expect(toonToJson(text)).toEqual({ items: [{ k: 'v1' }, { k: 'v2' }] });
+    });
+
+    it('decodes mixed-shape items (object via "- k: v", then primitive)', () => {
+      // List with a non-uniform mix: first item is an object via inline form,
+      // second is a bare primitive.
+      const text = ['items[2]:', '  - k: 1', '  - 42'].join('\n');
+      expect(toonToJson(text, { strict: false })).toEqual({
+        items: [{ k: 1 }, 42]
+      });
+    });
+  });
 });

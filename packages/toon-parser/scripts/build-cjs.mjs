@@ -17,8 +17,15 @@ function findTsFiles(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
+      // Drop `bench/` directories entirely — never shipped.
+      if (entry.name === 'bench') continue;
       out.push(...findTsFiles(full));
-    } else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts')) {
+    } else if (
+      entry.name.endsWith('.ts') &&
+      !entry.name.endsWith('.d.ts') &&
+      !entry.name.endsWith('.test.ts') &&
+      !entry.name.endsWith('.bench.ts')
+    ) {
       out.push(full);
     }
   }

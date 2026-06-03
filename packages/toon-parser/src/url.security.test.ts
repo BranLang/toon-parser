@@ -36,6 +36,16 @@ describe('urlToToon — prototype pollution guards', () => {
     ).toThrow(/Disallowed key "forbidden"/);
   });
 
+  it('extraDisallowedKeys augments without dropping prototype guards', () => {
+    // Caller adds "tenantId" but should still be protected against __proto__.
+    expect(() =>
+      urlToToon('__proto__.polluted=YES', { extraDisallowedKeys: ['tenantId'] })
+    ).toThrow(ToonError);
+    expect(() =>
+      urlToToon('tenantId[x]=1', { extraDisallowedKeys: ['tenantId'] })
+    ).toThrow(/Disallowed key "tenantId"/);
+  });
+
   it('still parses normal nested params correctly', () => {
     const out = urlToToon('user[name]=alice&user[age]=30');
     expect(out).toContain('name: alice');

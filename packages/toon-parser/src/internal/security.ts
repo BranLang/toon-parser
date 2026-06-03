@@ -7,15 +7,21 @@ export interface SecurityOptionsLike {
   maxArrayLength?: number;
   maxTotalNodes?: number;
   disallowedKeys?: string[];
+  extraDisallowedKeys?: string[];
   maxInputLength?: number;
 }
 
 export function applyLimits(options: SecurityOptionsLike): Limits {
+  const base = options.disallowedKeys ?? DEFAULT_LIMITS.disallowedKeys;
+  const extra = options.extraDisallowedKeys;
+  const disallowed = extra && extra.length > 0
+    ? Array.from(new Set([...base, ...extra]))
+    : base;
   return {
     maxDepth: options.maxDepth ?? DEFAULT_LIMITS.maxDepth,
     maxArrayLength: options.maxArrayLength ?? DEFAULT_LIMITS.maxArrayLength,
     maxTotalNodes: options.maxTotalNodes ?? DEFAULT_LIMITS.maxTotalNodes,
-    disallowedKeys: options.disallowedKeys ?? DEFAULT_LIMITS.disallowedKeys,
+    disallowedKeys: disallowed,
     maxInputLength: options.maxInputLength ?? DEFAULT_LIMITS.maxInputLength
   };
 }

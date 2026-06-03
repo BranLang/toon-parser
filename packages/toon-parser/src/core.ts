@@ -55,8 +55,17 @@ export interface SecurityOptions {
   /**
    * Keys that are rejected to avoid prototype pollution.
    * Defaults to ["__proto__", "constructor", "prototype"].
+   *
+   * NOTE: Setting this **replaces** the default list. To keep the prototype
+   * guards and add your own, prefer `extraDisallowedKeys`.
    */
   disallowedKeys?: string[];
+  /**
+   * Additional keys to reject, merged on top of the default prototype-pollution
+   * guards (or your overridden `disallowedKeys`). Use this when you want to
+   * extend — not replace — the blocklist.
+   */
+  extraDisallowedKeys?: string[];
   /**
    * Maximum allowed length of a raw input string passed to a `*ToToon` /
    * `*ToJson` decoder. Defaults to 5_000_000 (5 MB).
