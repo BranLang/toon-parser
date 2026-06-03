@@ -37,24 +37,12 @@ describe('Complex Scenarios', () => {
     });
 
     describe('URL Array Syntax', () => {
-        it('expands bracket notation deeply', () => {
+        it('expands bracket notation deeply with push idiom', () => {
              const url = 'sort[order]=asc&sort[fields][]=name&sort[fields][]=date';
              const toon = urlToToon(url);
-             // sort:
-             //   order: asc
-             //   fields:
-             //     - name
-             //     - date
-             // Note: Our current urlToToon likely doesn't support array push `[]` logic fully.
-             // We saw in smoke tests we might overwrite or fail.
-             // This test documents current LIMITATION or behavior if it differs.
-             // Our code: `if (last === '' ... ) return;`
-             // So `fields[]` key means last part is empty. It returns.
-             // So `name` and `date` are ignored?
-             // Let's check if we want to fix this or accept it.
-             // The user asked for "rigorous tests", implies we should probably fix or at least know.
-             // If we leave it, let's verify it does NOT crash.
+             expect(toon).toContain('sort:');
              expect(toon).toContain('order: asc');
+             expect(toon).toContain('fields[2]: name,date');
         });
     });
 });

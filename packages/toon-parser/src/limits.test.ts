@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { jsonToToon } from './index';
+import { jsonToToon, toonToJson, ToonError } from './index';
 
 describe('security enforcement and limits', () => {
   it('throws when maxDepth exceeded', () => {
@@ -29,5 +29,30 @@ describe('security enforcement and limits', () => {
     expect(() => jsonToToon({ a: 1, b: 2 }, { maxTotalNodes: 4 })).not.toThrow();
     // {a: 1} = 2 nodes (object + value). cap=1 still trips.
     expect(() => jsonToToon({ a: 1 }, { maxTotalNodes: 1 })).toThrow(/Node count/);
+  });
+
+  describe('extraDisallowedKeys', () => {
+    it('augments the default blocklist without dropping prototype guards', () => {
+      // Custom key is rejected.
+      expect(() =>
+        jsonToToon({ tenantId: 1 } as Record<string, unknown>, {
+          extraDisallowedKeys: ['tenantId']
+        })
+      ).toThrow(ToonError);
+      // __proto__ is still rejected because the default list is preserved.
+      expect(() =>
+        toonToJson('__proto__: 1', { extraDisallowedKeys: ['tenantId'] })
+      ).toThrow(ToonError);
+    });
+
+    it('disallowedKeys still overrides defaults (documented footgun)', () => {
+      // Caller fully replaces the list — __proto__ no longer guarded.
+      // Mirrors prior behavior; this test pins it so we notice if it changes.
+      const out = jsonToToon(
+        { ok: 1 } as Record<string, unknown>,
+        { disallowedKeys: [] }
+      );
+      expect(out).toBe('ok: 1');
+    });
   });
 });

@@ -2,26 +2,65 @@
 
 ## Supported Versions
 
-Only the latest major version of `toon-parser` is currently supported with security updates.
+Only the latest minor on the current major line of `toon-parser` receives
+security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 2.x     | :white_check_mark: |
-| 1.x     | :x:                |
-| < 1.0   | :x:                |
+| 3.x     | :white_check_mark: |
+| 2.x     | :x:                |
+| < 2.0   | :x:                |
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability within `toon-parser`, please do not open a public issue.
-Instead, please email the maintainer directly or report it via GitHub Security Advisory if enabled for this repository.
+If you discover a security vulnerability in `toon-parser`, **please do not open
+a public issue**. Instead, use GitHub's private vulnerability reporting:
 
-We will acknowledge receipt of your vulnerability report within 48 hours and strive to send you regular updates about our progress.
+- https://github.com/BranLang/toon-parser/security/advisories/new
+
+You can expect acknowledgement within 72 hours and regular progress updates
+through the advisory thread.
 
 ## Release Integrity
-- Builds are run in CI on Node 18 and 22.
-- npm provenance is enabled (`npm publish --provenance`); verify signatures when consuming artifacts.
+
+- CI runs on Node **20, 22, 24** (see [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)).
+- npm provenance is enabled — releases are published with `npm publish --provenance --access public`.
+- Verify provenance with `npm view toon-parser --json` (the `signatures` /
+  `provenance` fields) or via `npm audit signatures`.
 
 ## Safe Configuration Guidance
-- XML: keep the default `xmlOptions`; enabling entity expansion or custom parsers can alter security properties.
-- HTML/CSV: apply input size limits at the caller boundary for untrusted data to avoid resource exhaustion.
-- Use the latest patch/minor release on the 2.x line to receive security fixes.
+
+The library enforces defense-in-depth limits by default. All `*ToToon` /
+`*ToJson` decoders accept these options:
+
+| Option                 | Default                                          | Purpose                                                              |
+| ---------------------- | ------------------------------------------------ | -------------------------------------------------------------------- |
+| `maxDepth`             | `64`                                             | Caps nested object/array depth.                                      |
+| `maxArrayLength`       | `50_000`                                         | Caps any single array length.                                        |
+| `maxTotalNodes`        | `250_000`                                        | Caps total values processed in one call.                             |
+| `maxInputLength`       | `5_000_000` (5 MB)                               | Caps raw input string length. Use `Infinity` to disable.             |
+| `disallowedKeys`       | `["__proto__", "constructor", "prototype"]`     | **Replaces** the prototype-pollution blocklist when set.             |
+| `extraDisallowedKeys`  | `[]`                                             | **Adds** to the prototype-pollution blocklist. Prefer this for tenant guards. |
+
+### Prototype pollution
+
+The decoder rejects keys in `disallowedKeys` at every nesting level, including
+URL bracket / dotted paths (`urlToToon`) and folded dotted-path keys
+(`expandPaths: 'safe'`).
+
+> **Footgun:** setting `disallowedKeys: ['tenantId']` **replaces** the default
+> list, silently disabling the `__proto__` / `constructor` / `prototype` guards.
+> Use `extraDisallowedKeys: ['tenantId']` instead to keep the defaults.
+
+### Format adapters
+
+- **XML** (`xmlToToon`): default `xmlOptions` disable XML declaration handling
+  but rely on `fast-xml-parser`'s defaults for entities. Do not pass parser
+  options that enable external entity resolution against untrusted input.
+- **HTML** (`htmlToToon`): the validator uses linear scanners (no
+  catastrophic-backtracking regex); still apply size limits at the caller
+  boundary for untrusted input.
+- **CSV** (`csvToToon`) and **Log** (`logToToon`): apply `maxInputLength` at the
+  call site for untrusted input to bound parser work.
+- **URL** (`urlToToon`): bracket and dotted segments are recursively checked
+  against `disallowedKeys` before assignment.
