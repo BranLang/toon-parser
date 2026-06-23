@@ -93,6 +93,6 @@
   },
   "dependencies": {
     "fast-xml-parser": "^5.7.2",
-    "node-html-parser": "^7.1.0"
+    "node-html-parser": "^8.0.3"
   }
 }
